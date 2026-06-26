@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { PLATFORM_URL } from "./constants";
 
 /**
  * Generate a unique, human-friendly referral code from a name.
@@ -30,5 +31,5 @@ export async function generateReferralCode(name: string): Promise<string> {
 }
 
 export function buildReferralLink(referralCode: string): string {
-  return `https://ensnake.com?ref=${encodeURIComponent(referralCode)}`;
+  return `${PLATFORM_URL}?ref=${encodeURIComponent(referralCode)}`;
 }

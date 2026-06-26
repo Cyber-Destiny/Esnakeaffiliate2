@@ -126,7 +126,7 @@ export function ProfilePanel() {
   const referralCode = current?.referralCode ?? "—";
   const referralLink =
     current?.referralLink ??
-    `https://ensnake.com?ref=${current?.referralCode ?? ""}`;
+    `https://esnaked.com?ref=${current?.referralCode ?? ""}`;
 
   // Commission explainer: ₦1000 wager → ₦100 platform revenue (10%) → pct% of ₦100.
   const pct = current?.commissionPct ?? 20;

@@ -8,8 +8,8 @@ export const PLATFORM_FEE_PCT = 10;
 // Example: platform revenue ₦100, commission 20% -> affiliate earns ₦20
 export const DEFAULT_COMMISSION_PCT = 20;
 
-// Cookie used for referral attribution on the main platform (ensnake.com)
-export const REFERRAL_COOKIE_NAME = "ensnake_ref";
+// Cookie used for referral attribution on the main platform (esnaked.com)
+export const REFERRAL_COOKIE_NAME = "esnake_ref";
 export const REFERRAL_COOKIE_MAX_AGE_DAYS = 365;
 
 // Auth
@@ -19,8 +19,8 @@ export const JWT_ISSUER = "ensnake-affiliate";
 export const JWT_AUDIENCE = "ensnake-affiliate-users";
 
 // Platform brand
-export const PLATFORM_DOMAIN = "ensnake.com";
-export const PLATFORM_URL = "https://ensnake.com";
+export const PLATFORM_DOMAIN = "esnaked.com";
+export const PLATFORM_URL = "https://esnaked.com";
 
 // Currency
 export const CURRENCY_CODE = "NGN";

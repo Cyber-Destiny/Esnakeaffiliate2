@@ -8,7 +8,7 @@ const schema = z.object({
 });
 
 /**
- * Records a referral link click on the main platform (ensnake.com?ref=JOSHUA).
+ * Records a referral link click on the main platform (esnaked.com?ref=JOSHUA).
  * This endpoint is called by the main platform's landing page when a `?ref=` param
  * is present. Attribution is also stored in a cookie on the main domain so that a
  * later signup can be tied back to the affiliate.

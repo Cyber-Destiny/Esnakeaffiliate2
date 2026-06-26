@@ -20,7 +20,7 @@ export function Footer() {
         <div className="flex items-center gap-4">
           <span>© {new Date().getFullYear()} ENSNAKE</span>
           <span className="hidden h-3 w-px bg-border sm:inline" />
-          <a href="https://ensnake.com" className="hidden hover:text-neon sm:inline">ensnake.com</a>
+          <a href="https://esnaked.com" className="hidden hover:text-neon sm:inline">esnaked.com</a>
           <span className="flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-neon" /> v1.0
           </span>

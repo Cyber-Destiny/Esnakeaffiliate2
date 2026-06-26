@@ -173,7 +173,7 @@ export function AffiliateFormDialog({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="affiliate@ensnake.com"
+              placeholder="affiliate@esnaked.com"
               autoComplete="off"
               required
             />

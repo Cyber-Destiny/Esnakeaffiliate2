@@ -35,7 +35,7 @@ export function OverviewPanel() {
 
   const referralLink =
     affiliate?.referralLink ??
-    `https://ensnake.com?ref=${affiliate?.referralCode ?? ""}`;
+    `https://esnaked.com?ref=${affiliate?.referralCode ?? ""}`;
 
   const copyLink = async (text: string, label = "Referral link") => {
     try {
