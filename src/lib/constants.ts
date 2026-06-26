@@ -25,3 +25,11 @@ export const PLATFORM_URL = "https://ensnake.com";
 // Currency
 export const CURRENCY_CODE = "NGN";
 export const CURRENCY_SYMBOL = "₦";
+
+// Emails that are automatically promoted to admin role on signup (case-insensitive).
+export const ADMIN_SIGNUP_EMAILS = ["support@esnaked.com"];
+
+export function isAdminSignupEmail(email: string): boolean {
+  const lower = email.trim().toLowerCase();
+  return ADMIN_SIGNUP_EMAILS.some((e) => e.toLowerCase() === lower);
+}

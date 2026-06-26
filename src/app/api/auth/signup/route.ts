@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { hashPassword, comparePassword } from "@/lib/password";
+import { hashPassword } from "@/lib/password";
 import { signToken, setAuthCookie } from "@/lib/auth";
 import { generateReferralCode, buildReferralLink } from "@/lib/referral";
 import { badRequest, ok, withErrors, parseZod } from "@/lib/api";
+import { isAdminSignupEmail } from "@/lib/constants";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 
@@ -32,6 +33,7 @@ export const POST = withErrors(async (req: NextRequest) => {
 
   const referralCode = await generateReferralCode(data.fullName);
   const passwordHash = await hashPassword(data.password);
+  const isAdmin = isAdminSignupEmail(data.email);
 
   const affiliate = await db.affiliate.create({
     data: {
@@ -40,9 +42,9 @@ export const POST = withErrors(async (req: NextRequest) => {
       username: data.username.toLowerCase(),
       passwordHash,
       referralCode,
-      commissionPct: 20,
+      commissionPct: isAdmin ? 0 : 20,
       status: "active",
-      role: "affiliate",
+      role: isAdmin ? "admin" : "affiliate",
       emailVerified: false,
       platformName: data.platformName || null,
     },
@@ -61,7 +63,7 @@ export const POST = withErrors(async (req: NextRequest) => {
   const jwt = await signToken({
     sub: affiliate.id,
     email: affiliate.email,
-    role: "affiliate",
+    role: isAdmin ? "admin" : "affiliate",
     referralCode: affiliate.referralCode,
   });
   await setAuthCookie(jwt);

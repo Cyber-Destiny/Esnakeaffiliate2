@@ -159,3 +159,30 @@ Stage Summary:
 - Design: premium dark theme, neon green accents, betting-platform aesthetic, fully responsive, sticky footer.
 - CONSTRAINT NOTE: User requested PostgreSQL; the sandbox only supports SQLite, so the schema uses SQLite but is written portably (switch `provider` + `datasource` to postgres to migrate). The `?ref=CODE` referral attribution + cookie model is implemented via the tracking API and `REFERRAL_COOKIE_NAME` constant.
 - Demo credentials: admin@ensnake.com / Admin@123 · joshua@ensnake.com / Joshua@123 · amara@ensnake.com / Amara@123.
+
+---
+Task ID: 8
+Agent: orchestrator (main)
+Task: Fix hamburger menu, remove all dummy data + simulators, fix dashboard loading, auto-admin on support@esnaked.com signup
+
+Work Log:
+- Fixed hamburger menu (topbar.tsx): was reading `useUiStore.getState().sidebarOpen` non-reactively (never updated on click). Now subscribes via `useUiStore((s) => s.sidebarOpen)`. Also added `SheetTitle` (sr-only "Navigation menu") + `aria-describedby={undefined}` for accessibility.
+- Removed all dummy/demo data: wiped the database (deleted all affiliates, referred users, clicks, deposits, wagers, withdrawals, payouts, notifications, tokens). Replaced prisma/seed.ts with a no-op that documents the clean-start policy.
+- Removed all simulators: deleted `src/app/api/tracking/simulate/` route entirely. Removed the "Live demo / Simulate activity" section + `simulate()` function + `simulating` state from `overview-panel.tsx`.
+- Removed demo account buttons: deleted the `DemoAccounts` component and its `<DemoAccounts />` usage from `auth-screen.tsx` (login form). Cleaned up unused `cn` import.
+- Auto-admin on signup: added `ADMIN_SIGNUP_EMAILS = ["support@esnaked.com"]` + `isAdminSignupEmail()` to constants.ts. Updated `signup/route.ts` so a signup with that email gets `role: "admin"`, `commissionPct: 0`, and an admin-scoped JWT.
+- Fixed topbar notification polling lint error (react-hooks/set-state-in-effect): inlined the async fetch with an `active` cleanup guard instead of calling an external `loadNotifications` function.
+- Dashboard loading issue: confirmed the affiliate dashboard loads correctly for a fresh signup (renders stat cards with ₦0 values, empty states for referrals/withdrawals). No infinite loading.
+
+Agent Browser verification (all passed):
+- Login screen: demo account buttons gone, clean signup/login form.
+- Signed up with support@esnaked.com -> auto-promoted to admin, landed on Admin Dashboard. Sidebar shows Admin nav (Dashboard/Affiliates/Withdrawals).
+- Admin dashboard loads instantly with empty data (zeros, "Top affiliates" + "Revenue split" sections render).
+- Signed up as a normal affiliate (creator@test.com) -> landed on Affiliate Dashboard, all 8 stat cards show ₦0, "How you earn" explainer present, NO "Simulate activity" section. Referrals panel shows empty state. Withdrawals panel shows empty state.
+- Mobile (390x844): hamburger "Open menu" button works -> sidebar Sheet opens with Dashboard/Affiliates/Withdrawals/Sign out.
+- `bun run lint`: 0 errors, 0 warnings. Console: 0 errors, 0 warnings.
+
+Stage Summary:
+- All 4 user-reported issues resolved: (1) hamburger dropdown works, (2) all dummy data + simulators removed, (3) affiliate dashboard loads, (4) demo accounts removed + support@esnaked.com auto-admin.
+- Database starts empty. The first signup with support@esnaked.com becomes admin; all other signups are affiliates.
+- Kept `/api/tracking/click` (real referral attribution, not a simulator); removed only `/api/tracking/simulate`.

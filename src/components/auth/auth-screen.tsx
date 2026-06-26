@@ -23,7 +23,6 @@ import {
   User as UserIcon,
   AtSign,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function AuthScreen() {
   const view = useUiStore((s) => s.view);
@@ -218,7 +217,6 @@ function LoginForm() {
           {!loading && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
-      <DemoAccounts />
     </FormShell>
   );
 }
@@ -547,49 +545,5 @@ function VerifyForm() {
         </button>
       </form>
     </FormShell>
-  );
-}
-
-function DemoAccounts() {
-  const login = useAuthStore((s) => s.login);
-  const [loading, setLoading] = useState<string | null>(null);
-  const fill = async (email: string, password: string, label: string) => {
-    setLoading(label);
-    try {
-      await login(email, password);
-      toast.success("Signed in with demo account");
-    } catch {
-      toast.error("Demo login failed");
-    } finally {
-      setLoading(null);
-    }
-  };
-  const items = [
-    { label: "Affiliate", email: "joshua@ensnake.com", password: "Joshua@123", note: "Joshua Isok · JOSHUA" },
-    { label: "Admin", email: "admin@ensnake.com", password: "Admin@123", note: "Full admin access" },
-  ];
-  return (
-    <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Demo accounts
-      </p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {items.map((it) => (
-          <button
-            key={it.label}
-            type="button"
-            onClick={() => fill(it.email, it.password, it.label)}
-            disabled={loading !== null}
-            className={cn(
-              "flex flex-col items-start rounded-md border border-border/60 bg-background/50 p-2.5 text-left transition-colors hover:border-neon/40 hover:bg-neon/5 disabled:opacity-60"
-            )}
-          >
-            <span className="text-xs font-semibold text-neon">{it.label}</span>
-            <span className="mt-0.5 text-[11px] text-muted-foreground">{it.note}</span>
-            <span className="mt-1 text-[11px] font-mono text-foreground/70">{loading === it.label ? "Signing in..." : it.email}</span>
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

@@ -8,7 +8,6 @@ import {
   Users,
   Coins,
   TrendingUp,
-  Wallet,
   Banknote,
   PiggyBank,
   Copy,
@@ -24,18 +23,19 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { apiPost, ApiError } from "@/lib/fetcher";
 import { formatCurrency, formatNumber } from "@/lib/format";
 
 export function OverviewPanel() {
   const affiliate = useAuthStore((s) => s.affiliate);
-  const { data: stats, loading: statsLoading, refresh: refreshStats } = useOverviewStats();
-  const { data: daily, loading: dailyLoading, refresh: refreshDaily } = useDailyStats(14);
+  const { data: stats, loading: statsLoading } = useOverviewStats();
+  const { data: daily, loading: dailyLoading } = useDailyStats(14);
   const [copied, setCopied] = useState(false);
 
   const last14 = useMemo(() => (daily ? daily.slice(-14) : []), [daily]);
 
-  const referralLink = affiliate?.referralLink ?? `https://ensnake.com?ref=${affiliate?.referralCode ?? ""}`;
+  const referralLink =
+    affiliate?.referralLink ??
+    `https://ensnake.com?ref=${affiliate?.referralCode ?? ""}`;
 
   const copyLink = async (text: string, label = "Referral link") => {
     try {
@@ -45,35 +45,6 @@ export function OverviewPanel() {
       setTimeout(() => setCopied(false), 1500);
     } catch {
       toast.error("Could not copy to clipboard");
-    }
-  };
-
-  const [simulating, setSimulating] = useState<string | null>(null);
-  const simulate = async (kind: "signup" | "deposit" | "wager") => {
-    setSimulating(kind);
-    try {
-      const res = await apiPost<{
-        event: string;
-        referredUser?: { username: string };
-        amount?: number;
-        wager?: number;
-        platformRevenue?: number;
-        commission?: number;
-      }>(`/api/tracking/simulate?kind=${kind}`);
-      if (kind === "wager" && res.commission != null) {
-        toast.success(`Wager simulated — you earned ${formatCurrency(res.commission)} commission`);
-      } else if (kind === "deposit" && res.amount != null) {
-        toast.success(`Deposit simulated — ${formatCurrency(res.amount)} recorded`);
-      } else if (kind === "signup" && res.referredUser) {
-        toast.success(`New referral: @${res.referredUser.username} signed up`);
-      } else {
-        toast.success("Activity simulated");
-      }
-      await Promise.all([refreshStats(), refreshDaily()]);
-    } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Failed to simulate activity");
-    } finally {
-      setSimulating(null);
     }
   };
 
@@ -223,47 +194,6 @@ export function OverviewPanel() {
             <span className="rounded-lg border border-neon/30 bg-neon/10 px-3 py-1.5 font-mono text-neon neon-text-glow">
               You earn ₦20
             </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Simulate activity */}
-      <section className="rounded-xl border border-border/60 bg-card/50 p-5 backdrop-blur-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-sm font-semibold">Live demo</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Simulate referral activity to see how your dashboard reacts in real-time.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => simulate("signup")}
-              disabled={simulating !== null}
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              {simulating === "signup" ? "Working…" : "Simulate signup"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => simulate("deposit")}
-              disabled={simulating !== null}
-            >
-              <Wallet className="h-3.5 w-3.5" />
-              {simulating === "deposit" ? "Working…" : "Simulate deposit"}
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => simulate("wager")}
-              disabled={simulating !== null}
-              className="bg-neon text-primary-foreground hover:bg-neon/90"
-            >
-              <Coins className="h-3.5 w-3.5" />
-              {simulating === "wager" ? "Working…" : "Simulate wager"}
-            </Button>
           </div>
         </div>
       </section>

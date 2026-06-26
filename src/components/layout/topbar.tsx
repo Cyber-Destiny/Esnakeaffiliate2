@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -24,6 +25,7 @@ import { timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function Topbar({ title }: { title: string }) {
+  const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const affiliate = useAuthStore((s) => s.affiliate);
   const view = useUiStore((s) => s.view);
@@ -33,24 +35,27 @@ export function Topbar({ title }: { title: string }) {
 
   const isAdmin = affiliate?.role === "admin";
 
-  const loadNotifications = async () => {
-    if (isAdmin) return; // admin uses admin views
-    try {
-      const data = await apiGet<{ rows: AppNotification[]; unreadCount: number }>(
-        "/api/affiliate/notifications?unread=0"
-      );
-      setItems(data.rows.slice(0, 12));
-      setUnread(data.unreadCount);
-    } catch {
-      /* ignore */
-    }
-  };
-
   useEffect(() => {
-    loadNotifications();
-    const id = setInterval(loadNotifications, 30000);
-    return () => clearInterval(id);
-     
+    let active = true;
+    const load = async () => {
+      if (isAdmin) return;
+      try {
+        const data = await apiGet<{ rows: AppNotification[]; unreadCount: number }>(
+          "/api/affiliate/notifications?unread=0"
+        );
+        if (!active) return;
+        setItems(data.rows.slice(0, 12));
+        setUnread(data.unreadCount);
+      } catch {
+        /* ignore */
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
   }, [view, isAdmin]);
 
   const markAllRead = async () => {
@@ -65,13 +70,14 @@ export function Topbar({ title }: { title: string }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/40 bg-background/80 px-4 backdrop-blur-md sm:px-6">
-      <Sheet open={useUiStore.getState().sidebarOpen} onOpenChange={setSidebarOpen}>
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
+        <SheetContent side="left" className="w-72 p-0" aria-describedby={undefined}>
+          <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <Sidebar />
         </SheetContent>
       </Sheet>
