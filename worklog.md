@@ -268,3 +268,21 @@ Stage Summary:
 - In this sandbox, DATABASE_URL points at the local SQLite file, so the app runs on the SQLite fallback — but the moment you set a `postgres://` DATABASE_URL on a real server, the app switches to PostgreSQL automatically.
 - Existing user accounts (Destiny/support@esnaked.com admin, David/reachbeaking@gmail.com affiliate) are intact.
 - To go live on Postgres: (1) install PostgreSQL on your server, (2) `createdb ensnake`, (3) set `DATABASE_URL=postgresql://user:pass@host:5432/ensnake?schema=public` in `.env`, (4) run `bun run db:push` to create tables, (5) restart.
+
+---
+Task ID: 12
+Agent: orchestrator (main)
+Task: Fix Vercel deployment — DATABASE_URL error on Vercel
+
+Work Log:
+- Root cause: User deploys to Vercel. On Vercel: (1) DATABASE_URL env var not set in project settings, (2) SQLite cannot work on Vercel's read-only serverless filesystem, (3) no postinstall script to generate Prisma client during Vercel build, (4) next.config.ts had output:"standalone" (for self-hosted, not Vercel) and didn't externalize Prisma.
+- Added "postinstall": "prisma generate && prisma generate --schema=prisma/schema.sqlite.prisma" to package.json — Vercel runs this during build, generating the Prisma client(s).
+- Simplified "build" script to just "next build" (removed standalone cp commands that fail on Vercel).
+- Updated next.config.ts: conditionally uses output:"standalone" only for non-Vercel; added serverExternalPackages:["@prisma/client"] so Prisma's native binaries aren't bundled into serverless functions.
+- Rewrote src/lib/db.ts: detects Vercel via process.env.VERCEL/VERCEL_ENV. On Vercel with no DATABASE_URL → throws a clear, actionable error explaining PostgreSQL is required. On Vercel with postgres:// DATABASE_URL → uses PostgreSQL. Local sandbox without DATABASE_URL → SQLite fallback (Bun auto-loads .env).
+- Verified: Bun auto-loads .env in sandbox (so local tests can't fully simulate Vercel's no-.env state), but on actual Vercel there's no .env file, so the code path is correct.
+- Confirmed .env is in .gitignore (won't deploy to Vercel).
+- Sandbox still works: homepage 200, signup 200, lint clean.
+
+Stage Summary:
+- The Vercel fix is in code. User must now: (1) get a PostgreSQL database (Vercel Postgres / Neon / Supabase), (2) set DATABASE_URL in Vercel → Settings → Environment Variables, (3) set JWT_SECRET too, (4) redeploy. The app will then use PostgreSQL automatically.
