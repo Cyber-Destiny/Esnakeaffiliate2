@@ -1,18 +1,14 @@
-// ENSNAKE Affiliate System - Prisma Schema
-// Provider: PostgreSQL (production-grade relational database).
-//
-// Money is stored as Float (NGN kobo precision is sufficient for this app and
-// keeps aggregations simple). For stricter accounting, switch to Decimal.
-//
-// DATABASE_URL example:
-//   postgresql://ensnake:password@localhost:5432/ensnake?schema=public
+// Local SQLite schema — used ONLY as a sandbox fallback when no PostgreSQL
+// DATABASE_URL is configured. Mirrors prisma/schema.prisma (PostgreSQL) field
+// for field. Keep both schemas in sync if you change the data model.
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client/sqlite"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -23,12 +19,12 @@ model Affiliate {
   username      String   @unique
   passwordHash  String
   referralCode  String   @unique
-  commissionPct Float    @default(20) // % of platform revenue paid to affiliate
-  status        String   @default("active") // active | suspended | pending
-  role          String   @default("affiliate") // affiliate | admin
+  commissionPct Float    @default(20)
+  status        String   @default("active")
+  role          String   @default("affiliate")
   emailVerified Boolean  @default(false)
   avatarUrl     String?
-  platformName  String? // e.g. TikTok, YouTube, Twitch
+  platformName  String?
   bio           String?
   phone         String?
   createdAt     DateTime @default(now())
@@ -39,9 +35,6 @@ model Affiliate {
   withdrawals   Withdrawal[]
   payouts       Payout[]
   notifications Notification[]
-
-  @@index([status])
-  @@index([role])
 }
 
 model ReferredUser {
@@ -52,17 +45,14 @@ model ReferredUser {
   referralCode        String
   deposited           Float    @default(0)
   totalWagered        Float    @default(0)
-  revenueGenerated    Float    @default(0) // platform revenue generated
+  revenueGenerated    Float    @default(0)
   commissionGenerated Float    @default(0)
-  status              String   @default("active") // active | dormant
+  status              String   @default("active")
   joinedAt            DateTime @default(now())
 
   affiliate           Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
   deposits            Deposit[]
   wagers              Wager[]
-
-  @@index([affiliateId])
-  @@index([referralCode])
 }
 
 model Click {
@@ -74,9 +64,6 @@ model Click {
   createdAt    DateTime @default(now())
 
   affiliate    Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-
-  @@index([affiliateId])
-  @@index([createdAt])
 }
 
 model Deposit {
@@ -86,23 +73,17 @@ model Deposit {
   createdAt      DateTime @default(now())
 
   referredUser   ReferredUser @relation(fields: [referredUserId], references: [id], onDelete: Cascade)
-
-  @@index([referredUserId])
-  @@index([createdAt])
 }
 
 model Wager {
   id              String   @id @default(cuid())
   referredUserId  String
-  amount          Float // total wager
-  platformRevenue Float   @default(0) // platform fee portion (feePct * wager)
-  commission      Float   @default(0) // affiliate commission (commissionPct of platformRevenue)
+  amount          Float
+  platformRevenue Float   @default(0)
+  commission      Float   @default(0)
   createdAt       DateTime @default(now())
 
   referredUser    ReferredUser @relation(fields: [referredUserId], references: [id], onDelete: Cascade)
-
-  @@index([referredUserId])
-  @@index([createdAt])
 }
 
 model Withdrawal {
@@ -112,55 +93,45 @@ model Withdrawal {
   bankName      String
   accountNumber String
   accountName   String
-  status        String   @default("pending") // pending | approved | rejected
+  status        String   @default("pending")
   transactionId String?
   note          String?
   createdAt     DateTime @default(now())
   processedAt   DateTime?
 
   affiliate     Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-
-  @@index([affiliateId])
-  @@index([status])
 }
 
 model Payout {
   id            String   @id @default(cuid())
   affiliateId   String
   amount        Float
-  status        String   @default("completed") // completed | pending | failed
+  status        String   @default("completed")
   transactionId String
   method        String   @default("bank_transfer")
   createdAt     DateTime @default(now())
 
   affiliate     Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-
-  @@index([affiliateId])
 }
 
 model Notification {
   id          String   @id @default(cuid())
   affiliateId String
-  type        String // signup | deposit | withdrawal_requested | withdrawal_approved | withdrawal_rejected | system
+  type        String
   title       String
   message     String
   read        Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-
-  @@index([affiliateId])
-  @@index([read])
 }
 
 model VerificationToken {
   id        String   @id @default(cuid())
   email     String
   token     String   @unique
-  purpose   String // email_verification | password_reset
+  purpose   String
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  @@index([email])
 }
