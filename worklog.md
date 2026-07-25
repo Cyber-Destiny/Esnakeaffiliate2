@@ -286,3 +286,21 @@ Work Log:
 
 Stage Summary:
 - The Vercel fix is in code. User must now: (1) get a PostgreSQL database (Vercel Postgres / Neon / Supabase), (2) set DATABASE_URL in Vercel → Settings → Environment Variables, (3) set JWT_SECRET too, (4) redeploy. The app will then use PostgreSQL automatically.
+
+---
+Task ID: 13
+Agent: orchestrator (main)
+Task: Create tables in Neon PostgreSQL database (Vercel deployment)
+
+Work Log:
+- User provided Neon pooled connection string (ep-empty-sound-a2k0bde6-pooler.eu-central-1.aws.neon.tech/neondb).
+- Ran `DATABASE_URL="..." bun run prisma db push` against the Neon PostgreSQL database.
+- Result: "Your database is now in sync with your Prisma schema. Done in 12.36s" — all 9 tables created.
+- Verified via \$queryRaw against pg_tables: Affiliate, Click, Deposit, Notification, Payout, ReferredUser, VerificationToken, Wager, Withdrawal — all present in public schema.
+- Tested write: created a test affiliate, confirmed it persisted, deleted it. Reads + writes both work against Neon.
+- Neon database is now empty (0 affiliates) and ready for production signups.
+
+Stage Summary:
+- Neon PostgreSQL is fully provisioned and table schema is in sync.
+- User's next step: redeploy on Vercel (Deployments → latest → Redeploy). The app will connect to Neon via DATABASE_URL env var (already set) and signups will work.
+- SECURITY NOTE: The Neon connection string was shared in chat. After go-live, the user should rotate the Neon password in the Neon dashboard and update the DATABASE_URL in Vercel, since the credential was exposed in plaintext.
