@@ -304,3 +304,23 @@ Stage Summary:
 - Neon PostgreSQL is fully provisioned and table schema is in sync.
 - User's next step: redeploy on Vercel (Deployments → latest → Redeploy). The app will connect to Neon via DATABASE_URL env var (already set) and signups will work.
 - SECURITY NOTE: The Neon connection string was shared in chat. After go-live, the user should rotate the Neon password in the Neon dashboard and update the DATABASE_URL in Vercel, since the credential was exposed in plaintext.
+
+---
+Task ID: 14
+Agent: orchestrator (main)
+Task: Build missing referral tracking endpoints + diagnose Vercel sync issue
+
+Work Log:
+- Diagnosed: user's Vercel-deployed app shows all zeros because (1) Neon database had 0 affiliates — signups on Vercel aren't reaching Neon, and (2) there were NO tracking API endpoints for signup/deposit/wager — only /api/tracking/click existed. The main esnaked.com platform has no way to report referred-user activity.
+- Root cause of Vercel issue: no git remote configured in this sandbox. User's Vercel deploys from a separate GitHub repo that doesn't have the latest code fixes (postinstall, next.config.ts, db.ts, and now the tracking endpoints). All code changes made in this sandbox never reached Vercel.
+- Created 3 new tracking API endpoints (server-to-server, called by the main esnaked.com platform):
+  - POST /api/tracking/signup { referralCode, username, email? } -> creates ReferredUser + notification
+  - POST /api/tracking/deposit { referralCode, username, amount } -> creates Deposit + updates totals + notification
+  - POST /api/tracking/wager { referralCode, username, amount } -> computes platformRevenue (10% of wager) + commission (commissionPct% of revenue), creates Wager + updates totals
+- Tested full tracking flow against Neon: created affiliate -> click -> signup -> deposit (₦5000) -> wager (₦10000). Verified dashboard stats: 1 click, 1 signup, 1 depositor, ₦10000 wagered, ₦1000 platform revenue, ₦200 commission (20% of ₦1000), 2 notifications. All correct. Cleaned up test data.
+- bun run lint: 0 errors.
+
+Stage Summary:
+- Tracking system is now complete: click + signup + deposit + wager endpoints all work against Neon.
+- CRITICAL: User's Vercel deployment is running OLD code. They must sync the latest code from this sandbox to their GitHub repo, then Vercel auto-deploys. No git remote is configured here, so user must download/copy the code manually.
+- Integration guide for main esnaked.com platform documented (call /api/tracking/* endpoints with referralCode + username + amount).
