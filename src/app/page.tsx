@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useUiStore } from "@/store/ui-store";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { AppShell } from "@/components/layout/app-shell";
+import { ReferralCapture } from "@/components/shared/referral-capture";
 
 export default function Home() {
   const affiliate = useAuthStore((s) => s.affiliate);
@@ -31,6 +32,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
+        <ReferralCapture />
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neon/30 border-t-neon" />
           <p className="text-sm text-muted-foreground">Loading ENSNAKE Partners...</p>
@@ -40,13 +42,27 @@ export default function Home() {
   }
 
   if (!affiliate) {
-    return <AuthScreen />;
+    return (
+      <>
+        <ReferralCapture />
+        <AuthScreen />
+      </>
+    );
   }
 
   if (view.startsWith("auth:")) {
-    // Logged in but viewing an auth screen (e.g. verify email) — still allow it
-    return <AuthScreen />;
+    return (
+      <>
+        <ReferralCapture />
+        <AuthScreen />
+      </>
+    );
   }
 
-  return <AppShell />;
+  return (
+    <>
+      <ReferralCapture />
+      <AppShell />
+    </>
+  );
 }
