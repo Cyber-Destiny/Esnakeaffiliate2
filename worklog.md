@@ -324,3 +324,23 @@ Stage Summary:
 - Tracking system is now complete: click + signup + deposit + wager endpoints all work against Neon.
 - CRITICAL: User's Vercel deployment is running OLD code. They must sync the latest code from this sandbox to their GitHub repo, then Vercel auto-deploys. No git remote is configured here, so user must download/copy the code manually.
 - Integration guide for main esnaked.com platform documented (call /api/tracking/* endpoints with referralCode + username + amount).
+
+---
+Task ID: 15
+Agent: orchestrator (main)
+Task: Push latest code to GitHub (Esnakeaffiliate2) for Vercel auto-deploy
+
+Work Log:
+- User provided GitHub PAT. Resolved GitHub username via API: Cyber-Destiny.
+- Listed user's repos; identified Esnakeaffiliate2 as the Vercel-connected repo (had project files, pushed July 25).
+- Added git remote with token auth. Committed latest changes (tracking endpoints + admin emails + Vercel/Postgres fixes).
+- Removed obsolete src/app/api/tracking/simulate route from disk + git (was replaced by real tracking endpoints).
+- Force-pushed clean main branch to github.com/Cyber-Destiny/Esnakeaffiliate2 (forced update 1b22d02...ae12fa9).
+- Verified all key files present on GitHub (HTTP 200 for each: tracking/signup, tracking/deposit, tracking/wager, db.ts, prisma/schema.prisma, package.json).
+- Removed token from local git remote URL for security.
+
+Stage Summary:
+- GitHub repo Cyber-Destiny/Esnakeaffiliate2 now has ALL latest code.
+- Vercel should auto-detect the push and redeploy within ~1-2 minutes.
+- After Vercel redeploys: signups will persist to Neon, referral tracking works (click/signup/deposit/wager), admin emails (support@esnaked.com + reachkingdestiny@gmail.com) auto-promote.
+- SECURITY: User's GitHub PAT was shared in chat. Recommend revoking it at github.com/settings/tokens after confirming the deploy works, and generating a fresh one if needed for future pushes.
